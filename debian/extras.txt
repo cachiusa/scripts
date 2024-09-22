@@ -1,0 +1,7 @@
+aptitude
+ffmpeg
+fonts-cantarell
+fonts-inter
+pipx
+qterminal
+xterm
