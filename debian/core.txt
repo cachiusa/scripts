@@ -1,7 +1,6 @@
 adb
 aria2
 binutils
-build-essential
 busybox
 ccache
 curl
@@ -18,6 +17,7 @@ python-is-python3
 python2.7
 python3
 rsync
+vim
 wget
 xz-utils
 zsh

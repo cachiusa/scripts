@@ -1,7 +1,15 @@
 aptitude
+build-essential
 ffmpeg
+file-roller
+flatpak
 fonts-cantarell
+fonts-firacode
 fonts-inter
+gnome-disk-utility
+gnome-system-monitor
+gparted
 pipx
 qterminal
+shellcheck
 xterm

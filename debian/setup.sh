@@ -3,16 +3,21 @@
 # Copyright (C) 2018 Akhil Narang
 # SPDX-License-Identifier: GPL-3.0-only
 scripts_home=$(readlink -m "$(dirname $0)")
-CORE_PACKAGES="$(cat $scripts_home/core.txt)"
-EXTRAS="$(cat $scripts_home/extras.txt)"
 
 ######################################################
-#set -e
+set -e
 
+echo "Installing main packages"
 sudo DEBIAN_FRONTEND=noninteractive apt update
 sudo DEBIAN_FRONTEND=noninteractive \
     apt install -y --no-install-recommends \
-    ${CORE_PACKAGES} ${EXTRAS}
+    $(cat $scripts_home/core.txt) \
+    $(cat $scripts_home/extras.txt)
+
+echo "Setting up flatpak..."
+flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo && flatpak update
+
+set +e
 
 bash $scripts_home/desktop.sh
 bash $scripts_home/zsh.sh

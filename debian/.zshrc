@@ -93,25 +93,35 @@ if [ -n "$force_color_prompt" ]; then
     fi
 fi
 
+real_git_status() {
+    local gstatus
+    if [ -n "$GITSTATUS_PROMPT" ]; then 
+        gstatus="(${GITSTATUS_PROMPT}%F{%(#.blue.green)})"
+        [ "$PROMPT_ALTERNATIVE" = "twoline" ] && gstatus="-${gstatus}"
+        echo ${gstatus}
+    fi
+}
+
 configure_prompt() {
     prompt_symbol=@
     # Skull emoji for root terminal
     #[ "$EUID" -eq 0 ] && prompt_symbol=💀
+    [ -n "$1" ] && PROMPT_ALTERNATIVE="$1"
     case "$PROMPT_ALTERNATIVE" in
         twoline)
-            PROMPT=$'%F{%(#.blue.green)}┌──${debian_chroot:+($debian_chroot)─}${VIRTUAL_ENV:+($(basename $VIRTUAL_ENV))─}(%B%F{%(#.red.blue)}%n'$prompt_symbol$'%m%b%F{%(#.blue.green)})-[%B%F{reset}%(6~.%-1~/…/%4~.%5~)%b%F{%(#.blue.green)}]${GITSTATUS_PROMPT:+-($GITSTATUS_PROMPT}%b%F{%(#.blue.green)}${GITSTATUS_PROMPT:+)}\n└─%B%(#.%F{red}#.%F{blue}$)%b%F{reset} '
-            # Right-side prompt with exit codes and background processes
-            RPROMPT=$'%(?.. %? %F{red}%B⨯%b%F{reset})%(1j. %j %F{yellow}%B⚙%b%F{reset}.)'
+            PROMPT=$'%F{%(#.blue.green)}┌──${debian_chroot:+($debian_chroot)─}${VIRTUAL_ENV:+($(basename $VIRTUAL_ENV))─}(%B%F{%(#.red.blue)}%n'$prompt_symbol$'%m%b%F{%(#.blue.green)})-[%B%F{reset}%(6~.%-1~/…/%4~.%5~)%b%F{%(#.blue.green)}]$(real_git_status)\n└─%B%(#.%F{red}#.%F{blue}$)%b%F{reset} '
             ;;
         oneline)
             PROMPT=$'${debian_chroot:+($debian_chroot)}${VIRTUAL_ENV:+($(basename $VIRTUAL_ENV))}%B%F{%(#.red.blue)}%n@%m%b%F{reset}:%B%F{%(#.blue.green)}%~%b%F{reset}%(#.#.$) '
-            RPROMPT=$'%(?.. %? %F{red}%B⨯%b%F{reset})%(1j. %j %F{yellow}%B⚙%b%F{reset}.)${GITSTATUS_PROMPT:+\ ($GITSTATUS_PROMPT)}'
             ;;
         backtrack)
             PROMPT=$'${debian_chroot:+($debian_chroot)}${VIRTUAL_ENV:+($(basename $VIRTUAL_ENV))}%B%F{red}%n@%m%b%F{reset}:%B%F{blue}%~%b%F{reset}%(#.#.$) '
-            RPROMPT=$'%(?.. %? %F{red}%B⨯%b%F{reset})%(1j. %j %F{yellow}%B⚙%b%F{reset}.)${GITSTATUS_PROMPT:+\ ($GITSTATUS_PROMPT)}'
             ;;
     esac
+
+    # Right-side prompt with exit codes and background processes
+    RPROMPT=$'%(?.. %? %F{red}%B⨯%b%F{reset})%(1j. %j %F{yellow}%B⚙%b%F{reset}.)'
+    [ "$PROMPT_ALTERNATIVE" = "twoline" ] || RPROMPT="$(real_git_status) ${RPROMPT}"
     unset prompt_symbol
 }
 
@@ -279,66 +289,4 @@ alias gitstatus-install='test ! -d ~/gitstatus && git clone --depth=1 https://gi
 
 ###################################################
 # alias
-
-export TZ="Asia/Ho_Chi_Minh"
-
-# cpu clock
-alias cpuperf='echo "performance" | sudo tee /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor'
-alias cpusave='echo "powersave" | sudo tee /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor'
-alias cpustate='cat /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor'
-
-# Some git aliases for an easier workflow
-function gitpick() {
-    [ -z "$1" ] && echo "Missing url to commit" && return
-    curl -s $1.patch > _git.patch
-    shift
-    git am _git.patch $@
-    rm _git.patch
-}
-
-function gitalias() {
-    git config --global alias.s 'status'
-    git config --global alias.p 'push'
-    git config --global alias.pl 'pull'
-    git config --global alias.f 'fetch'
-
-    git config --global alias.r 'remote'
-    git config --global alias.rv 'remote --verbose'
-    git config --global alias.ru 'remote update'
-    git config --global alias.rrm 'remote remove'
-    git config --global alias.rsu 'remote set-url'
-    git config --global alias.ra 'remote add'
-
-    git config --global alias.rev 'revert'
-
-    git config --global alias.re 'reset'
-    git config --global alias.rh 'reset --hard'
-    git config --global alias.rs 'reset --soft'
-
-    git config --global alias.cp 'cherry-pick'
-    git config --global alias.cpc 'cherry-pick --continue'
-    git config --global alias.cpa 'cherry-pick --abort'
-    git config --global alias.cps 'cherry-pick --skip'
-
-    git config --global alias.rb 'rebase'
-    git config --global alias.rbi 'rebase --interactive'
-    git config --global alias.rbc 'rebase --continue'
-    git config --global alias.rba 'rebase --abort'
-    git config --global alias.rbs 'rebase --skip'
-    git config --global alias.rbam 'git add . && git commit --amend --no-edit && git rebase --continue'
-
-    git config --global alias.d 'diff'
-    git config --global alias.dc 'diff --cached'
-
-    git config --global alias.b 'bisect'
-
-    git config --global alias.c 'commit'
-    git config --global alias.cs 'commit --signoff'
-    git config --global alias.ca 'commit --amend'
-    git config --global alias.cn 'commit --no-edit'
-    git config --global alias.can 'commit --amend --no-edit'
-    
-    git config --global alias.add-change-id "!EDITOR='sed -i -re s/^pick/e/' sh -c 'git rebase -i \$1 && while test -f .git/rebase-merge/interactive; do git commit --amend --no-edit && git rebase --continue; done' -"
-
-    git config --global alias.wipe '-c gc.reflogExpire=0 -c gc.reflogExpireUnreachable=0 -c gc.rerereresolved=0 -c gc.rerereunresolved=0 -c gc.pruneExpire=now gc'
-}
+. ~/.zshfn
