@@ -289,4 +289,4 @@ alias gitstatus-install='test ! -d ~/gitstatus && git clone --depth=1 https://gi
 
 ###################################################
 # alias
-. ~/.zshfn
+. ~/.fn
